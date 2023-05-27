@@ -3,6 +3,8 @@ name = "melodious"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
+ratatui = "0.20"
+crossterm = "0.25"
+unicode-width = "0.1.5"
+rodio = "0.17.1"
