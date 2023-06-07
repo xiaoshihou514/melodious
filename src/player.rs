@@ -1,13 +1,9 @@
 pub struct Player {}
 
 impl Player {
-    pub fn new() -> Self {
-        // TODO
-        Player {}
-    }
+    pub fn new() -> Self {}
 
-    pub fn gen_string(&self) -> String {
-        // TODO
-        "".to_string()
-    }
+    pub fn init(&mut self) {}
+
+    pub fn exit(&self) {}
 }
