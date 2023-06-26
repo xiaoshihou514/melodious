@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-ratatui = "0.20"
-crossterm = "0.25"
-unicode-width = "0.1.5"
-rodio = "0.17.1"
+tuirealm = "^1.8.0"
+symphonia = { version = "0.5.2", features = ["flac", "mp3"] }
+cpal = "0.15.2"
+unicode-width = "0.1.10"
