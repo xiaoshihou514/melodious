@@ -18,17 +18,53 @@ pub fn build(b: *std.Build) void {
     });
     exe.root_module.addImport("vaxis", vaxis_dep.module("vaxis"));
 
-    // miniaudio
-    // download miniaudio header file
-    const miniaudioVersion = "0.11.21";
-    const curl = b.addSystemCommand(&.{"curl"});
-    curl.addArgs(&.{ b.fmt("https://raw.githubusercontent.com/mackron/miniaudio/refs/tags/{s}/miniaudio.h", .{miniaudioVersion}), "-o", "miniaudio.h", "-C", "-" });
+    // libmpv
+    // download libmpv client header file
+    _ = std.fs.cwd().statFile("client.h") catch |err| {
+        switch (err) {
+            std.fs.File.OpenError.FileNotFound => {
+                const libmpvVersion = "0.39";
+                const curl = b.addSystemCommand(&.{"curl"});
+                curl.addArgs(&.{
+                    b.fmt("https://raw.githubusercontent.com/mpv-player/mpv/refs/heads/release/{s}/libmpv/client.h", .{libmpvVersion}),
+                    "-o",
+                    "client.h",
+                });
 
-    exe.step.dependOn(&curl.step);
+                exe.step.dependOn(&curl.step);
+            },
+            else => {},
+        }
+    };
 
     exe.linkLibC();
+    exe.linkSystemLibrary("mpv");
     exe.addIncludePath(.{ .cwd_relative = "." });
-    exe.addCSourceFile(.{ .file = b.path("stub.c"), .flags = &.{ "-lpthread", "-lm", "-ldl", "-fno-sanitize=undefined" } });
+    exe.addCSourceFile(.{ .file = b.path("stub.c"), .flags = &.{
+        "-I/usr/include/freetype2",
+        "-I/usr/include/vapoursynth",
+        "-I/usr/include/spa-0.2",
+        "-I/usr/include/fribidi",
+        "-I/usr/include/cdio",
+        "-I/usr/include/ffmpeg",
+        "-I/usr/include/libpng16",
+        "-I/usr/include/harfbuzz",
+        "-I/usr/include/glib-2.0",
+        "-I/usr/lib64/glib-2.0/include",
+        "-I/usr/include/sysprof-6",
+        "-pthread",
+        "-I/usr/include/libxml2",
+        "-I/usr/include/lua-5.1",
+        "-I/usr/include/SDL2",
+        "-I/usr/include/uchardet",
+        "-I/usr/include/python3.12",
+        "-DWITH_GZFILEOP",
+        "-I/usr/include/AL",
+        "-I/usr/include/pipewire-0.3",
+        "-D_REENTRANT",
+        "-I/usr/include/libdrm",
+        "-I/usr/include/ffnvcodec",
+        "-lmpv" } });
 
     // zig install
     const install_artifact = b.addInstallArtifact(exe, .{
