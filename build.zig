@@ -19,24 +19,6 @@ pub fn build(b: *std.Build) void {
     exe.root_module.addImport("vaxis", vaxis_dep.module("vaxis"));
 
     // libmpv
-    // download libmpv client header file
-    _ = std.fs.cwd().statFile("client.h") catch |err| {
-        switch (err) {
-            std.fs.File.OpenError.FileNotFound => {
-                const libmpvVersion = "0.39";
-                const curl = b.addSystemCommand(&.{"curl"});
-                curl.addArgs(&.{
-                    b.fmt("https://raw.githubusercontent.com/mpv-player/mpv/refs/heads/release/{s}/libmpv/client.h", .{libmpvVersion}),
-                    "-o",
-                    "client.h",
-                });
-
-                exe.step.dependOn(&curl.step);
-            },
-            else => {},
-        }
-    };
-
     exe.linkLibC();
     exe.linkSystemLibrary("mpv");
     exe.addIncludePath(.{ .cwd_relative = "." });
@@ -64,7 +46,8 @@ pub fn build(b: *std.Build) void {
         "-D_REENTRANT",
         "-I/usr/include/libdrm",
         "-I/usr/include/ffnvcodec",
-        "-lmpv" } });
+        "-lmpv" }
+    });
 
     // zig install
     const install_artifact = b.addInstallArtifact(exe, .{
@@ -82,12 +65,6 @@ pub fn build(b: *std.Build) void {
     run_step.dependOn(&run_cmd.step);
 
     // zig test
-    const lib_unit_tests = b.addTest(.{
-        .root_source_file = b.path("src/root.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-    const run_lib_unit_tests = b.addRunArtifact(lib_unit_tests);
     const exe_unit_tests = b.addTest(.{
         .root_source_file = b.path("src/main.zig"),
         .target = target,
@@ -95,6 +72,5 @@ pub fn build(b: *std.Build) void {
     });
     const run_exe_unit_tests = b.addRunArtifact(exe_unit_tests);
     const test_step = b.step("test", "Run unit tests");
-    test_step.dependOn(&run_lib_unit_tests.step);
     test_step.dependOn(&run_exe_unit_tests.step);
 }
