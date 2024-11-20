@@ -4,6 +4,12 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
+    // libvaxis
+    const vaxis_dep = b.dependency("vaxis", .{
+        .target = target,
+        .optimize = optimize,
+    });
+
     const exe = b.addExecutable(.{
         .name = "melodious",
         .root_source_file = b.path("src/main.zig"),
@@ -11,17 +17,13 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
-    // libvaxis
-    const vaxis_dep = b.dependency("vaxis", .{
-        .target = target,
-        .optimize = optimize,
-    });
     exe.root_module.addImport("vaxis", vaxis_dep.module("vaxis"));
 
     // libmpv
     exe.linkLibC();
     exe.linkSystemLibrary("mpv");
-    exe.addIncludePath(.{ .cwd_relative = "." });
+    // pkg-config --libs --cflags mpv
+    // zig fmt: off
     exe.addCSourceFile(.{ .file = b.path("stub.c"), .flags = &.{
         "-I/usr/include/freetype2",
         "-I/usr/include/vapoursynth",
@@ -48,29 +50,7 @@ pub fn build(b: *std.Build) void {
         "-I/usr/include/ffnvcodec",
         "-lmpv" }
     });
+    // zig fmt: on
 
-    // zig install
-    const install_artifact = b.addInstallArtifact(exe, .{
-        .dest_dir = .{ .override = .prefix },
-    });
-    b.getInstallStep().dependOn(&install_artifact.step);
-
-    // zig run
-    const run_cmd = b.addRunArtifact(exe);
-    run_cmd.step.dependOn(b.getInstallStep());
-    if (b.args) |args| {
-        run_cmd.addArgs(args);
-    }
-    const run_step = b.step("run", "Run the app");
-    run_step.dependOn(&run_cmd.step);
-
-    // zig test
-    const exe_unit_tests = b.addTest(.{
-        .root_source_file = b.path("src/main.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-    const run_exe_unit_tests = b.addRunArtifact(exe_unit_tests);
-    const test_step = b.step("test", "Run unit tests");
-    test_step.dependOn(&run_exe_unit_tests.step);
+    b.installArtifact(exe);
 }
