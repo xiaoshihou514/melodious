@@ -14,7 +14,7 @@ pub fn main() !void {
     const state = try allocator.create(State);
     defer allocator.destroy(state);
 
-    state.init();
+    state.init(allocator);
 
     try app.run(state.widget(), .{});
     app.deinit();
