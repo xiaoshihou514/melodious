@@ -20,6 +20,7 @@ pub const State = struct {
 
     pub fn init(self: *State, allocator: std.mem.Allocator) void {
         self.allocator = allocator;
+        self.arena = std.heap.ArenaAllocator.init(allocator);
     }
 
     pub fn widget(self: *State) vxfw.Widget {

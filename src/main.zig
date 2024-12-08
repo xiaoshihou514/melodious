@@ -1,5 +1,6 @@
 const std = @import("std");
-const vxfw = @import("vaxis").vxfw;
+const vaxis = @import("vaxis");
+const vxfw = vaxis.vxfw;
 
 const State = @import("state.zig").State;
 
@@ -8,6 +9,14 @@ pub fn main() !void {
     defer _ = gpa.deinit();
     const allocator = gpa.allocator();
 
+    // enter alt screen
+    var tty = try vaxis.Tty.init();
+    defer tty.deinit();
+    var vx = try vaxis.init(allocator, .{});
+    defer vx.deinit(allocator, tty.anyWriter());
+    try vx.enterAltScreen(tty.anyWriter());
+
+    // run event loop
     var app = try vxfw.App.init(allocator);
     errdefer app.deinit();
 
